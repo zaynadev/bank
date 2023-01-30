@@ -54,8 +54,10 @@ contract BankAccount {
 
     modifier validOwners(address[] calldata owners) {
         require(owners.length <= 4, "Max 4 owners per account");
-        if (owners.length >= 2) {
-            for (uint i; i < owners.length - 1; i++) {
+
+        for (uint i; i < owners.length; i++) {
+            if (owners[i] == msg.sender) revert("owner duplicated");
+            if (owners.length >= 2) {
                 for (uint j = i + 1; j < owners.length; j++) {
                     if (owners[i] == owners[j]) {
                         revert("owner duplicated");
@@ -63,6 +65,7 @@ contract BankAccount {
                 }
             }
         }
+
         _;
     }
 
