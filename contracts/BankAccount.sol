@@ -3,7 +3,6 @@
 pragma solidity 0.8.17;
 
 contract BankAccount {
-    address owner;
     struct WithdrawRequest {
         address user;
         uint amount;
@@ -41,10 +40,6 @@ contract BankAccount {
     event Withdraw(uint indexed withdrawId, uint timestamp);
     event AccountCreated(address[] owners, uint indexed id, uint timestamp);
 
-    constructor() {
-        owner = msg.sender;
-    }
-
     modifier checkAccountOwner(uint accountId) {
         bool isOwner = false;
         for (uint i; i < accounts[accountId].owners.length; i++) {
@@ -76,6 +71,7 @@ contract BankAccount {
             accounts[accountId].withdrawRequest[withdrawId].user != address(0),
             "request does not exist!"
         );
+        _;
     }
 
     function deposit(
@@ -162,5 +158,24 @@ contract BankAccount {
         (bool sent, ) = payable(msg.sender).call{value: amount}("");
         require(sent, "witdraw failure");
         emit Withdraw(withdrawId, block.timestamp);
+    }
+
+    function getBalance(uint accountId) public view returns (uint) {
+        return accounts[accountId].balance;
+    }
+
+    function getOwners(uint accountId) public view returns (address[] memory) {
+        return accounts[accountId].owners;
+    }
+
+    function getApprovals(
+        uint accountId,
+        uint withdrawId
+    ) public view returns (uint) {
+        return accounts[accountId].withdrawRequest[withdrawId].approvals;
+    }
+
+    function getAccounts() public view returns (uint[] memory) {
+        return userAccounts[msg.sender];
     }
 }
