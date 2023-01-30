@@ -71,6 +71,13 @@ contract BankAccount {
         _;
     }
 
+    modifier requestExist(uint accountId, uint withdrawId) {
+        require(
+            accounts[accountId].withdrawRequest[withdrawId].user != address(0),
+            "request does not exist!"
+        );
+    }
+
     function deposit(
         uint accountId
     ) external payable checkAccountOwner(accountId) {
@@ -93,5 +100,67 @@ contract BankAccount {
         accounts[id].owners = owners;
         nextAccountId++;
         emit AccountCreated(owners, id, block.timestamp);
+    }
+
+    function requestWithdraw(
+        uint accountId,
+        uint amount
+    ) external checkAccountOwner(accountId) {
+        uint id = nextWithdrawId;
+        WithdrawRequest storage request = accounts[id].withdrawRequest[id];
+        request.user = msg.sender;
+        request.amount = amount;
+        request.approvals++;
+        request.ownerApproved[msg.sender] = true;
+        nextWithdrawId++;
+        emit WithdrawRequested(
+            msg.sender,
+            accountId,
+            id,
+            amount,
+            block.timestamp
+        );
+    }
+
+    function approveWithdraw(
+        uint accountId,
+        uint withdrawId
+    )
+        external
+        checkAccountOwner(accountId)
+        requestExist(accountId, withdrawId)
+    {
+        WithdrawRequest storage request = accounts[accountId].withdrawRequest[
+            withdrawId
+        ];
+        require(request.ownerApproved[msg.sender] == false, "Already approved");
+        require(request.approved == false);
+        request.approvals++;
+        request.ownerApproved[msg.sender] = true;
+        if (accounts[accountId].owners.length == request.approvals) {
+            request.approved = true;
+        }
+    }
+
+    function withdraw(
+        uint accountId,
+        uint withdrawId
+    )
+        external
+        checkAccountOwner(accountId)
+        requestExist(accountId, withdrawId)
+    {
+        WithdrawRequest storage request = accounts[accountId].withdrawRequest[
+            withdrawId
+        ];
+        require(request.user == msg.sender, "");
+        require(request.approved, "request not approved");
+        uint amount = request.amount;
+        require(accounts[accountId].balance >= amount, "Insufficient balance");
+        accounts[accountId].balance -= amount;
+        delete accounts[accountId].withdrawRequest[withdrawId];
+        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        require(sent, "witdraw failure");
+        emit Withdraw(withdrawId, block.timestamp);
     }
 }
