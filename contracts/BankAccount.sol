@@ -152,14 +152,17 @@ contract BankAccount {
         WithdrawRequest storage request = accounts[accountId].withdrawRequest[
             withdrawId
         ];
-        require(request.user == msg.sender, "");
+        require(
+            request.user == msg.sender,
+            "only request creater can withdraw"
+        );
         require(request.approved, "request not approved");
         uint amount = request.amount;
         require(accounts[accountId].balance >= amount, "Insufficient balance");
         accounts[accountId].balance -= amount;
         delete accounts[accountId].withdrawRequest[withdrawId];
         (bool sent, ) = payable(msg.sender).call{value: amount}("");
-        require(sent, "witdraw failure");
+        require(sent, "withdraw failure");
         emit Withdraw(withdrawId, block.timestamp);
     }
 
