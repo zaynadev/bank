@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bank account test</title>
+  </head>
+  <body>
+    <div>
+      <h3>Create account</h3>
+      <input type="text" id="owners" />
+      <button onclick="createAccount()">create</button>
+    </div>
+    <div>
+      <h3>View account</h3>
+      <p id="accounts"></p>
+      <button onclick="viewAccounts()">view</button>
+    </div>
+    <div id="events"></div>
+    <script
+      src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+      type="application/javascript"
+    ></script>
+    <script type="text/javascript" src="scripts.js"></script>
+  </body>
+</html>

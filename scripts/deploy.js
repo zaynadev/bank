@@ -5,8 +5,27 @@
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
 const hre = require("hardhat");
+const fs = require("fs/promises");
 
-async function main() {}
+async function main() {
+  const BankAccount = await hre.ethers.getContractFactory("BankAccount");
+  const bankAccount = await BankAccount.deploy();
+  await bankAccount.deployed();
+  await deployementInfo(bankAccount);
+  console.log(`BankAccount deployed at address ${bankAccount.address}`);
+}
+
+async function deployementInfo(contract) {
+  const data = {
+    contract: {
+      address: contract.address,
+      signer: contract.signer.address,
+      abi: contract.interface.format(),
+    },
+  };
+  const content = JSON.stringify(data, null, 2);
+  await fs.writeFile("deployment.json", content, { encoding: "utf-8" });
+}
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
